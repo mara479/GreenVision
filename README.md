@@ -22,3 +22,11 @@ Aplicație Descktop Python (CustomTkinter) pentru ghid de reciclare quiz,statist
    ```bash
    git clone https://github.com/mara479/GreenVision.git
    cd GreenVision
+
+## Screenshots
+![Principal](screenshots/principal.png)
+![Ghid](screenshots/ghid.png)
+![Statistici](screenshots/statistici.png)
+![Review](screenshots/review.png)
+![Harta](screenshots/harta1.png)
+![Harta](screenshots/harta2.png)
