@@ -205,3 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# GreenVision - generated files
+greenvision.db
+map.html
+map_test.html
