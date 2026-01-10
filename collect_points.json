@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Retim - Circumvalațiunii",
+    "lat": 45.7592,
+    "lon": 21.2276,
+    "types": ["Plastic", "Hârtie", "Sticlă", "Metal"]
+  },
+  {
+    "name": "Kaufland - Buziașului",
+    "lat": 45.7328,
+    "lon": 21.2474,
+    "types": ["Plastic", "Hârtie", "Ulei uzat"]
+  },
+  {
+    "name": "Iulius Mall - parcare principală",
+    "lat": 45.7763,
+    "lon": 21.2415,
+    "types": ["Plastic", "Sticlă", "Electronice"]
+  },
+  {
+    "name": "Auchan Nord",
+    "lat": 45.7806,
+    "lon": 21.2342,
+    "types": ["Plastic", "Hârtie", "Sticlă", "Ulei uzat"]
+  },
+  {
+    "name": "Profi Take&Go - Calea Aradului",
+    "lat": 45.7749,
+    "lon": 21.2244,
+    "types": ["Plastic", "Hârtie"]
+  },
+  {
+    "name": "Baza Retim - Str. Oituz",
+    "lat": 45.7565,
+    "lon": 21.2310,
+    "types": ["Plastic", "Sticlă", "Hârtie", "Electronice"]
+  },
+  {
+    "name": "Centrul DEEE - Calea Torontalului",
+    "lat": 45.7818,
+    "lon": 21.1972,
+    "types": ["Electronice"]
+  },
+  {
+    "name": "Lidl - Take Ionescu",
+    "lat": 45.7539,
+    "lon": 21.2448,
+    "types": ["Plastic", "Hârtie", "Ulei uzat"]
+  },
+  {
+    "name": "Carrefour - Dumbrăvița",
+    "lat": 45.8036,
+    "lon": 21.2304,
+    "types": ["Plastic", "Sticlă", "Hârtie"]
+  },
+  {
+    "name": "Punct colectare - Complex Studențesc",
+    "lat": 45.7498,
+    "lon": 21.2369,
+    "types": ["Plastic", "Hârtie", "Sticlă"]
+  }
+]
