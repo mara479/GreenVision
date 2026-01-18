@@ -232,7 +232,7 @@ class GreenVision(ctk.CTk):
         ctk.CTkLabel(header, text="GreenVision", font=FONT_TITLE, text_color=TEXT_DARK).pack(side="left", padx=16)
         self.star_label = ctk.CTkLabel(header, text="★ 0", font=("Segoe UI", 18, "bold"), text_color=TEXT_DARK)
         self.star_label.pack(side="right", padx=14)
-        ctk.CTkButton(header, text="🚪 Ieșire", fg_color="#95D5B2", hover_color="#74C69D",
+        ctk.CTkButton(header, text=" Ieșire", fg_color="#95D5B2", hover_color="#74C69D",
                       corner_radius=16, command=self._confirm_exit).pack(side="right", padx=8)
 
     def _build_tabs(self):
@@ -321,7 +321,7 @@ class GreenVision(ctk.CTk):
         self.score = 0
         self.current_quiz = self._new_quiz_set()  
 
-        ctk.CTkLabel(self.quiz_frame, text="🧩 Quiz: Reciclare inteligentă",
+        ctk.CTkLabel(self.quiz_frame, text=" Quiz: Reciclare inteligentă",
                      font=FONT_SUB, text_color=TEXT_DARK).pack(pady=(14, 10))
 
         self.q_label = ctk.CTkLabel(self.quiz_frame, text="", font=FONT_BODY_B,
@@ -399,7 +399,7 @@ class GreenVision(ctk.CTk):
         wrap.pack(pady=30, padx=30, fill="x")
 
         pct = int(self.score / QUIZ_LENGTH * 100)
-        msg = " Minunat!" if pct >= 80 else ("🌱 Bine! Mai exersează puțin." if pct >= 50 else " Hai că poți mai bine data viitoare!")
+        msg = " Minunat!" if pct >= 80 else (" Bine! Mai exersează puțin." if pct >= 50 else " Hai că poți mai bine data viitoare!")
 
         ctk.CTkLabel(wrap, text=f" Ai terminat!\nScor: {self.score}/{QUIZ_LENGTH}  ({pct}%)",
                      font=FONT_SUB, text_color=TEXT_DARK, justify="center").pack(padx=20, pady=(20, 6))
@@ -455,7 +455,7 @@ class GreenVision(ctk.CTk):
         self.chart_holder = ctk.CTkFrame(self.stats_frame)
         self.chart_holder.pack(fill="both", expand=True, padx=10, pady=10)
 
-        ctk.CTkButton(self.stats_frame, text="🔄 Reîmprospătează statistici",
+        ctk.CTkButton(self.stats_frame, text=" Reîmprospătează statistici",
                       fg_color="#95D5B2", hover_color="#74C69D",
                       corner_radius=16, command=self._update_stats).pack(pady=6)
 
@@ -514,7 +514,7 @@ class GreenVision(ctk.CTk):
 
     def _random_nickname(self):
         animals = ["Ecoturtle", "MissRecycle", "GreenFairy", "EcoHero", "PlasticBuster", "LeafLover", "BottleBuddy", "CanCrusher", "GreenBee", "TreeHugger"]
-        emojis  = ["🌸","🐢","🦋","🌿","🍃","🐝","🌼","🌱","🫧","✨"]
+        emojis  = [":)"]
         return f"{random.choice(emojis)} {random.choice(animals)}"
 
     def _submit_review(self):
@@ -570,7 +570,7 @@ class GreenVision(ctk.CTk):
             b = make_btn(txt)
             b.pack(side="left", padx=6, pady=8)
 
-        ctk.CTkButton(filters, text="🔄 Reîncarcă harta",
+        ctk.CTkButton(filters, text=" Reîncarcă harta",
                       fg_color="#B7E4C7", hover_color="#95D5B2",
                       corner_radius=14,
                       command=lambda: self._set_map_filter(self.current_filter.get())
@@ -614,7 +614,7 @@ class GreenVision(ctk.CTk):
             if os.path.exists(MAP_HTML):
                 webbrowser.open(f"file:///{MAP_HTML.replace('\\', '/')}")
                 self.map_status.configure(
-                    text=f"🌍 Harta a fost deschisă în browser (filtru: {self.current_filter.get()})"
+                    text=f" Harta a fost deschisă în browser (filtru: {self.current_filter.get()})"
                 )
             else:
                 self.map_status.configure(text=" Fișierul map.html nu există.")
@@ -647,7 +647,7 @@ class GreenVision(ctk.CTk):
                     f"<b>{p.get('name','')}</b><br/>{', '.join(types)}"
                     f"<br/><a href='{gmaps_url}' "
                     f"style='color:#2D6A4F; text-decoration:none; font-weight:bold;'>"
-                    f"📍 Deschide în Google Maps</a>"
+                    f" Deschide în Google Maps</a>"
                 )
 
                 folium.Marker(
@@ -670,3 +670,4 @@ class GreenVision(ctk.CTk):
 if __name__ == "__main__":
     app = GreenVision()
     app.mainloop()
+
