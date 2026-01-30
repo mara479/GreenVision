@@ -1,27 +1,29 @@
-import os
-import json
-import random
-import sqlite3
-import datetime as dt
-import webbrowser
-import customtkinter as ctk
-import tkinter.messagebox as mb
-from PIL import Image, ImageTk
-from functools import partial
+import os #cai/fisiere/foldere, join, exists, dirname, etc.
+import json # citire/scriere fisiere .json (liste/dict-uri)
+import random #alegeri random (quiz random, nickname random)
+import sqlite3 #baza de date locala (fisier .db) fara server, SQL direct din Python
+import datetime as dt #data/ora curenta
+import webbrowser #deschide browserul implicit (ex: map.html)
+import customtkinter as ctk #UI modern cu Tkinter
+import tkinter.messagebox as mb #mesaje pop-up (Tkinter) (yes/no, warning, info)
+from PIL import Image, ImageTk #manipulare(lucrat cu ) imagini(Pillow) & pt afisare in Tkinter(ImageTk)
+from functools import partial #intr-un fel lipeste param intr-o functie ex util pt butoane
 
 try:
-    import matplotlib
-    matplotlib.use("TkAgg")
+    import matplotlib #librarie de grafice (fol pt acele bare de la statistici)
+    matplotlib.use("TkAgg") #pentru a merge graficele in Tkinter
     from matplotlib.figure import Figure
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg #pune figura matplotlib in Tkinter
     MPL = True
 except Exception:
+    #daca nu e instalat sau nu merge aplicatia doar dezactiveaza graficele
     MPL = False
 
 try:
-    import folium
+    import folium #harta interactiva (html)
     FOLIUM_OK = True
 except Exception:
+    #daca lipseste ,harta iti spune sa dai pip install folium
     FOLIUM_OK = False
 
 APP_TITLE = "GreenVision"
@@ -40,13 +42,15 @@ TEXT_DARK  = "#1B4332"
 
 
 class DB:
+# param: none
+# constructor, seteaza calea db-ului si initializeaza tabelele daca nu exista
     def __init__(self):
         self.path = DB_PATH
         self._init_db()
-
+# returneaza un connection sqlite catre fisierul db (folosit cu "with")
     def _conn(self):
         return sqlite3.connect(self.path)
-
+#creeaza tabelele necesare (stats, recycle, quiz, reviews) + seed pt stats (id=1)
     def _init_db(self):
         with self._conn() as con:
             con.execute("CREATE TABLE IF NOT EXISTS stats(id INTEGER PRIMARY KEY CHECK (id=1), stars INTEGER DEFAULT 0)")
@@ -63,26 +67,34 @@ class DB:
                 )
             """)
 
-    
+# param: n=1 (int)->cate stelute adauga
+#  creste numarul de stelute din stats (id=1)
     def add_star(self, n=1):
         with self._conn() as con:
             con.execute("UPDATE stats SET stars = stars + ? WHERE id=1", (n,))
-
+# param: none
+# citeste cate stelute ai strans pana acum (fallback 0 daca nu gaseste randul)
     def get_stars(self):
         with self._conn() as con:
             row = con.execute("SELECT stars FROM stats WHERE id=1").fetchone()
             return row[0] if row else 0
 
-    
+# param: cat (str)->categoria reciclata (ex: "Plastic")
+# salveaza un log in tabelul recycle cu timestamp
     def log_recycle(self, cat):
         with self._conn() as con:
             con.execute("INSERT INTO recycle VALUES (?, ?)", (cat, dt.datetime.now().isoformat()))
 
-    
+# param: score (int), total (int)
+# salveaza un log in tabelul quiz cu scor + total + timestamp
     def log_quiz(self, score, total):
         with self._conn() as con:
             con.execute("INSERT INTO quiz VALUES (?, ?, ?)", (score, total, dt.datetime.now().isoformat()))
-
+    # param: none
+    # calculeaza statistici quiz:
+    # - best = cel mai mare scor
+    # - avg = media procentuala (scor/total)
+    # - count = cate quizuri s-au dat
     def quiz_stats(self):
         with self._conn() as con:
             rows = con.execute("SELECT score, total FROM quiz").fetchall()
@@ -93,14 +105,16 @@ class DB:
         count = len(rows)
         return best, avg, count
 
-    
+# param: nickname (str), rating (int 1..5), comment (str)
+#  adauga o recenzie in tabela reviews cu timestamp
     def add_review(self, nickname, rating, comment):
         with self._conn() as con:
             con.execute(
                 "INSERT INTO reviews(nickname, rating, comment, created_at) VALUES (?,?,?,?)",
                 (nickname, rating, comment, dt.datetime.now().isoformat()),
             )
-
+# param: none
+# ia lista de recenzii (cele mai noi primele)
     def get_reviews(self):
         with self._conn() as con:
             return con.execute(
@@ -157,6 +171,8 @@ QUIZ_LENGTH = 8
 
 
 class SplashScreen(ctk.CTkToplevel):
+ # param: master (root app), on_close (functie callback)
+# ecran de start (splash) cu mascot + buton care inchide splash-ul si porneste app-ul
     def __init__(self, master, on_close):
         super().__init__(master)
         self.on_close = on_close
@@ -177,7 +193,8 @@ class SplashScreen(ctk.CTkToplevel):
         ctk.CTkLabel(self, text="Ghid inteligent de reciclare", font=FONT_BODY, text_color=TEXT_DARK).pack(pady=(0,8))
         ctk.CTkButton(self, text="🌱 Intră în aplicație", fg_color="#52B788", hover_color="#2D6A4F",
                       corner_radius=14, command=self._close).pack(pady=10)
-
+# param: none
+#  animatie zoom-in la imaginea mascot (creste treptat marimea)
     def _animate_zoom(self):
         if self._zoom_scale < 1.0:
             self._zoom_scale += 0.015
@@ -186,13 +203,16 @@ class SplashScreen(ctk.CTkToplevel):
             self.tk_img = ImageTk.PhotoImage(frame)
             self.img_label.configure(image=self.tk_img)
             self.after(40, self._animate_zoom)
-
+# param: none
+#  inchide splash-ul si apeleaza callback-ul (porneste ecranul principal)
     def _close(self):
         self.destroy()
         self.on_close()
 
 
 class GreenVision(ctk.CTk):
+# param: none
+#  fereastra principala a aplicatiei (setup db, tema, splash, etc)
     def __init__(self):
         super().__init__()
         self.db = DB()
@@ -206,35 +226,42 @@ class GreenVision(ctk.CTk):
 
         self.withdraw()
         self.after(300, self._show_splash)
-
+# param: none
+#  arata fereastra de splash
     def _show_splash(self):
         SplashScreen(self, self._start_main)
-
+# param: none
+# porneste UI-ul principal (header + tabs + update stats)
     def _start_main(self):
         self.deiconify()
         self.update(); self.update_idletasks()
         self._build_header()
         self._build_tabs()
         self._update_stats()
-
+# param: none
+# confirmare la iesire (popup yes/no). daca da -> inchide app
     def _confirm_exit(self):
         if mb.askyesno("Ieșire", "Sigur vrei să părăsești aplicația GreenVision?"):
             self.destroy()
-
+# param: none
+# adauga 1 steluta (scurtatura pt buton)
     def _add_star(self):
         self.db.add_star(1)
         self._update_stats()
-
+# param: none
+#  construieste bara de sus (titlu, stelute, buton iesire)
     def _build_header(self):
         header = ctk.CTkFrame(self, height=92, fg_color="#EAF6EA")
         header.pack(fill="x")
 
         ctk.CTkLabel(header, text="GreenVision", font=FONT_TITLE, text_color=TEXT_DARK).pack(side="left", padx=16)
-        self.star_label = ctk.CTkLabel(header, text="★ 0", font=("Segoe UI", 18, "bold"), text_color=TEXT_DARK)
+        self.star_label = ctk.CTkLabel(header, text="* 0", font=("Segoe UI", 18, "bold"), text_color=TEXT_DARK)
         self.star_label.pack(side="right", padx=14)
-        ctk.CTkButton(header, text=" Ieșire", fg_color="#95D5B2", hover_color="#74C69D",
+        ctk.CTkButton(header, text="🚪 Ieșire", fg_color="#95D5B2", hover_color="#74C69D",
                       corner_radius=16, command=self._confirm_exit).pack(side="right", padx=8)
 
+# param: none
+#  creeaza tab-urile (ghid, quiz, statistici, recenzii, harta) si le populeaza
     def _build_tabs(self):
         self.tabs = ctk.CTkTabview(self)
         self.tabs.pack(fill="both", expand=True, padx=10, pady=10)
@@ -250,7 +277,8 @@ class GreenVision(ctk.CTk):
         self._build_stats()
         self._build_reviews()
         self._build_map()
-
+# param: none
+# UI pt ghid (lista categorii stanga + info si imagine dreapta)
     def _build_guide(self):
         frame = ctk.CTkFrame(self.guide_tab, fg_color="#FFFFFF")
         frame.pack(fill="both", expand=True, padx=12, pady=12)
@@ -275,10 +303,11 @@ class GreenVision(ctk.CTk):
         self.img_label.pack(padx=6, pady=6)
         self.img_shadow.pack(pady=8)
 
-        self.star_btn = ctk.CTkButton(right, text="★ Am reciclat corect!", fg_color="#95D5B2",
+        self.star_btn = ctk.CTkButton(right, text="* Am reciclat corect!", fg_color="#95D5B2",
                                       hover_color="#74C69D", corner_radius=16, command=self._add_star)
         self.star_btn.pack(pady=8)
-
+ # param: cat (str) -> categoria selectata
+# afiseaza informatia din GUIDE pt categoria aleasa, arata imagine, log in db, adauga stelute
     def _show_info(self, cat):
         data = GUIDE[cat]
         self.info_label.configure(text=(f"{cat}\nContainer: {data[0]}\n\n"
@@ -294,7 +323,8 @@ class GreenVision(ctk.CTk):
         self.db.log_recycle(cat)
         self.db.add_star(1)
         self._update_stats()
-
+# param: path (str) -> calea catre imagine
+#  face un mic "efect" pe imagine: apare mare, apoi se micsoreaza si se aseaza sub text
     def _animate_container(self, path):
         img = Image.open(path)
         big  = ImageTk.PhotoImage(img.resize((420, 420), Image.LANCZOS))
@@ -312,7 +342,9 @@ class GreenVision(ctk.CTk):
             self.img_shadow.pack(after=self.info_label, pady=8)
 
         self.after(500, shrink_and_place_below)
-
+# param: none
+#  construieste UI-ul pentru quiz (label intrebare, optiuni, feedback, next)
+   
     def _build_quiz(self):
         self.quiz_frame = ctk.CTkFrame(self.quiz_tab, fg_color="#F6FFF2")
         self.quiz_frame.pack(fill="both", expand=True)
@@ -341,10 +373,14 @@ class GreenVision(ctk.CTk):
         self.next_btn.pack(pady=10)
 
         self._load_q()
-
+ # param: none
+ # alege random un set de intrebari din QUIZ_POOL (max QUIZ_LENGTH)
+   
     def _new_quiz_set(self):
         return random.sample(QUIZ_POOL, k=min(QUIZ_LENGTH, len(QUIZ_POOL)))
-
+# param: options (list[str]), correct_idx (int)
+# deseneaza butoanele de raspuns, gestioneaza click-ul (corect/gresit), blocheaza restul
+    
     def _render_options(self, options, correct_idx):
         for w in self.options_wrap.winfo_children():
             w.destroy()
@@ -370,7 +406,9 @@ class GreenVision(ctk.CTk):
             b.configure(command=partial(on_pick, i, b))
             b.pack(pady=6)
             self.option_buttons.append(b)
-
+# param: none
+# incarca intrebarea curenta; daca s-a terminat quiz-ul -> log in db + stelute + ecran rezultat
+   
     def _load_q(self):
         if self.q_index >= len(self.current_quiz):
             total = len(self.current_quiz)
@@ -386,11 +424,15 @@ class GreenVision(ctk.CTk):
         self.feedback.configure(text="")
         self.next_btn.configure(state="disabled")
         self._render_options(options, ans)
-
+# param: none
+# trece la urmatoarea intrebare
+   
     def _next_q(self):
         self.q_index += 1
         self._load_q()
-
+# param: stars_gained (int)
+# afiseaza ecran de final quiz (scor + mesaj + butoane restart/ghid)
+    
     def _show_result(self, stars_gained):
         for w in self.quiz_frame.winfo_children():
             w.destroy()
@@ -415,7 +457,9 @@ class GreenVision(ctk.CTk):
         ctk.CTkButton(btns, text=" Înapoi la Ghid",
                       fg_color="#B7E4C7", hover_color="#95D5B2",
                       corner_radius=16, command=lambda: self.tabs.set(" Ghid")).pack(side="left", padx=8)
-
+# param: none
+# reseteaza quiz-ul (scor/index) + reconstruieste UI-ul (practic refresh complet)
+    
     def _restart_quiz(self):
         self.q_index = 0
         self.score = 0
@@ -444,7 +488,9 @@ class GreenVision(ctk.CTk):
         self.next_btn.pack(pady=10)
 
         self._load_q()
-
+# param: none
+# construieste UI pentru statistici (kpi + chart holder + buton refresh)
+   
     def _build_stats(self):
         self.stats_frame = ctk.CTkFrame(self.stats_tab, fg_color="#F1FFF1")
         self.stats_frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -458,7 +504,9 @@ class GreenVision(ctk.CTk):
         ctk.CTkButton(self.stats_frame, text=" Reîmprospătează statistici",
                       fg_color="#95D5B2", hover_color="#74C69D",
                       corner_radius=16, command=self._update_stats).pack(pady=6)
-
+# param: none
+# actualizeaza stelutele + KPI si (daca exista matplotlib) afiseaza un grafic simplu
+   
     def _update_stats(self):
         stars = self.db.get_stars()
         best, avg, count = self.db.quiz_stats()
@@ -482,6 +530,8 @@ class GreenVision(ctk.CTk):
             else:
                 ctk.CTkLabel(self.chart_holder, text="Nicio statistică încă sau Matplotlib indisponibil.").pack(pady=10)
 
+# param: none
+# construieste UI pentru recenzii (rating + textbox + lista scroll)
     
     def _build_reviews(self):
         wrap = ctk.CTkFrame(self.reviews_tab, fg_color="#FFFFFF")
@@ -511,12 +561,16 @@ class GreenVision(ctk.CTk):
         self.list_holder.pack(fill="both", expand=True, padx=8, pady=8)
 
         self._refresh_reviews()
-
+ # param: none
+#  genereaza un nickname random simpatic (emoji + animal eco)
+    
     def _random_nickname(self):
         animals = ["Ecoturtle", "MissRecycle", "GreenFairy", "EcoHero", "PlasticBuster", "LeafLover", "BottleBuddy", "CanCrusher", "GreenBee", "TreeHugger"]
-        emojis  = [":)"]
+        emojis  = ["*","*)",":)",":0"]
         return f"{random.choice(emojis)} {random.choice(animals)}"
-
+# param: none
+# ia rating + text, valideaza, salveaza recenzia in db, reset form, refresh lista, +1 steluta
+    
     def _submit_review(self):
         rating = self.rating_var.get()
         comment = self.comment_box.get("1.0", "end").strip()
@@ -530,7 +584,9 @@ class GreenVision(ctk.CTk):
         self._refresh_reviews()
         self.db.add_star(1)
         self._update_stats()
-
+# param: none
+# reincarca lista de recenzii in UI; daca nu exista niciuna, baga una default
+    
     def _refresh_reviews(self):
         for w in self.list_holder.winfo_children():
             w.destroy()
@@ -546,7 +602,9 @@ class GreenVision(ctk.CTk):
             ctk.CTkLabel(card, text=comment, justify="left", wraplength=900,
                          font=FONT_BODY).pack(anchor="w", padx=10, pady=(0,10))
 
-    
+# param: none
+# UI pt harta (filtre + buton reload + buton deschidere browser) si genereaza map.html
+       
     def _build_map(self):
         frame = ctk.CTkFrame(self.map_tab, fg_color="#FFFFFF")
         frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -554,7 +612,7 @@ class GreenVision(ctk.CTk):
         ctk.CTkLabel(frame, text=" Puncte de colectare în Timișoara",
                      font=FONT_SUB, text_color=TEXT_DARK).pack(pady=(10, 6))
 
-        # === Butoane filtrare ===
+       
         filters = ctk.CTkFrame(frame, fg_color="#F6FFF2")
         filters.pack(fill="x", padx=6, pady=(0, 6))
 
@@ -580,7 +638,7 @@ class GreenVision(ctk.CTk):
                                        font=FONT_BODY, text_color=TEXT_DARK)
         self.map_status.pack(pady=(0, 6))
 
-        # Buton pentru deschiderea hărții în browser
+        # Buton pentru deschiderea hartii in browser
         ctk.CTkButton(frame, text=" Deschide harta în browser",
                       fg_color="#74C69D", hover_color="#40916C",
                       corner_radius=16,
@@ -595,9 +653,11 @@ class GreenVision(ctk.CTk):
         
         self._generate_map(filter_type="Toate")
         self.map_status.configure(text=" Harta este generată. Apasă butonul pentru a o deschide.")
-
+# param: category (str)->filtrul selectat (ex: "Plastic", "Toate")
+#seteaza filtrul curent,regenereaza harta si update la status
+   
     def _set_map_filter(self, category):
-        """Regenerează harta după filtrul ales."""
+        
         if not FOLIUM_OK:
             self.map_status.configure(text=" folium nu este instalat.")
             return
@@ -607,9 +667,11 @@ class GreenVision(ctk.CTk):
         self.map_status.configure(
             text=f" Harta a fost regenerată pentru filtrul '{category}'. Apasă butonul pentru a o deschide în browser."
         )
-
+# param: none
+# deschide map.html in browser-ul implicit (cu protectie try/except)
+    
     def _load_map_html_safe(self):
-        """Deschide harta generată în browserul implicit."""
+        
         try:
             if os.path.exists(MAP_HTML):
                 webbrowser.open(f"file:///{MAP_HTML.replace('\\', '/')}")
@@ -620,9 +682,11 @@ class GreenVision(ctk.CTk):
                 self.map_status.configure(text=" Fișierul map.html nu există.")
         except Exception as e:
             self.map_status.configure(text=f" Eroare la deschiderea hărții: {e}")
-
+# param: filter_type="Toate" (str)
+# citeste punctele din collect_points.json,filtreaza dupa categorie si salveaza map.html cu markere
+   
     def _generate_map(self, filter_type="Toate"):
-        """Generează harta filtrată și o salvează ca map.html."""
+      
         if not FOLIUM_OK:
             return
 
@@ -668,6 +732,10 @@ class GreenVision(ctk.CTk):
 
 
 if __name__ == "__main__":
+     # param: none
+    # porneste aplicatia (creeaza fereastra si intra in loop-ul tkinter)
     app = GreenVision()
     app.mainloop()
+
+
 
