@@ -8,6 +8,9 @@ import customtkinter as ctk #UI modern cu Tkinter
 import tkinter.messagebox as mb #mesaje pop-up (Tkinter) (yes/no, warning, info)
 from PIL import Image, ImageTk #manipulare(lucrat cu ) imagini(Pillow) & pt afisare in Tkinter(ImageTk)
 from functools import partial #intr-un fel lipeste param intr-o functie ex util pt butoane
+# ML (local) - predictor reciclare
+from ml_model import load_or_train, predict_proba
+
 
 try:
     import matplotlib #librarie de grafice (fol pt acele bare de la statistici)
@@ -32,6 +35,9 @@ BASE_DIR = os.path.dirname(__file__)
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 MAP_HTML = os.path.join(BASE_DIR, "map.html")
 COLLECT_JSON = os.path.join(BASE_DIR, "collect_points.json")
+#print("CWD (de unde ruleaza):", os.getcwd())
+
+#print("DB absolute path:", os.path.abspath(DB_PATH))
 
 
 FONT_TITLE = ("Segoe UI", 26, "bold")
@@ -168,6 +174,17 @@ QUIZ_POOL = [
     ("Ambalaje din plastic cu resturi...", ["Se clătesc sau NU se reciclează", "La plastic oricum", "La sticlă"], 0),
 ]
 QUIZ_LENGTH = 8
+# ML labels (fara diacritice) -> categories din UI (cu diacritice unde ai in GUIDE)
+ML_TO_UI_CAT = {
+    "Plastic": "Plastic",
+    "Hartie": "Hârtie",
+    "Sticla": "Sticlă",
+    "Metal": "Metal",
+    "Electronice": "Electronice",   # atentie: GUIDE nu are Electronice (doar harta are)
+    "Ulei uzat": "Ulei uzat",       # GUIDE nu are Ulei uzat
+    "Baterii": "Baterii",
+    "Nereciclabil": "Nereciclabil"  # nu exista in GUIDE
+}
 
 
 class SplashScreen(ctk.CTkToplevel):
@@ -216,6 +233,8 @@ class GreenVision(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.db = DB()
+        # incarca modelul ML (daca nu exista, il antreneaza din json)
+        self.ml_bundle = load_or_train()
 
         self.title(APP_TITLE)
         self.geometry("1120x740")
@@ -232,12 +251,25 @@ class GreenVision(ctk.CTk):
         SplashScreen(self, self._start_main)
 # param: none
 # porneste UI-ul principal (header + tabs + update stats)
+   # def _start_main(self):
+    #    self.deiconify()
+     #   self.update(); self.update_idletasks()
+      #  self._build_header()
+       # self._build_tabs()
+        #self._update_stats()
     def _start_main(self):
+    # params: none
+    # ce face: porneste UI-ul; daca pica ceva, iti arata eroarea in popup
+     try:
         self.deiconify()
         self.update(); self.update_idletasks()
         self._build_header()
         self._build_tabs()
         self._update_stats()
+     except Exception as e:
+        mb.showerror("Eroare la start", repr(e))
+        raise
+
 # param: none
 # confirmare la iesire (popup yes/no). daca da -> inchide app
     def _confirm_exit(self):
@@ -271,12 +303,77 @@ class GreenVision(ctk.CTk):
         self.stats_tab   = self.tabs.add(" Statistici")
         self.reviews_tab = self.tabs.add(" Recenzii")
         self.map_tab     = self.tabs.add(" Harta")
+        self.ai_tab      = self.tabs.add(" AI")
 
         self._build_guide()
         self._build_quiz()
         self._build_stats()
         self._build_reviews()
         self._build_map()
+        self._build_ai()
+    def _build_ai(self):
+      # params: none
+      # ce face: construieste tab-ul AI (input text + predict + afisare rezultat)
+      frame = ctk.CTkFrame(self.ai_tab, fg_color="#FFFFFF")
+      frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+      ctk.CTkLabel(frame, text=" AI Recycle - spune-mi ce arunci",
+                 font=FONT_SUB, text_color=TEXT_DARK).pack(pady=(10, 6))
+
+      hint = "Exemple: pet de apa, borcan gem, doza aluminiu, telefon vechi, pizza murdara"
+      ctk.CTkLabel(frame, text=hint, font=FONT_BODY, text_color=TEXT_DARK).pack(pady=(0, 10))
+
+      self.ai_entry = ctk.CTkEntry(frame, width=680, height=40, placeholder_text="Scrie aici obiectul...")
+      self.ai_entry.pack(pady=8)
+
+      ctk.CTkButton(frame, text="🔎 Analizeaza",
+                  fg_color="#74C69D", hover_color="#52B788",
+                  corner_radius=16,
+                  command=self._ai_predict).pack(pady=8)
+
+      self.ai_result = ctk.CTkLabel(frame, text="", font=FONT_BODY_B, text_color=TEXT_DARK, wraplength=900)
+      self.ai_result.pack(pady=(12, 6))
+
+      self.ai_tip = ctk.CTkLabel(frame, text="", font=FONT_BODY, text_color=TEXT_DARK, wraplength=900)
+      self.ai_tip.pack(pady=(0, 10))
+
+
+    def _ai_predict(self):
+    # params: none
+    # ce face: ia textul userului, ruleaza ML, afiseaza categoria + confidence
+      text = self.ai_entry.get().strip()
+      if not text:
+        mb.showwarning("AI Recycle", "Scrie ceva (ex: 'pet de apa') ca sa pot prezice.")
+        return
+
+      label, conf = predict_proba(text, self.ml_bundle)
+      ui_cat = ML_TO_UI_CAT.get(label, label)
+
+      pct = int(conf * 100)
+      self.ai_result.configure(text=f"Predictie: {ui_cat} (confidence ~ {pct}%)")
+
+    # daca exista in GUIDE, folosim ghidul tau ca raspuns "oficial"
+      if ui_cat in GUIDE:
+        # reuse: arata info + log + stelute (ai deja logica in _show_info)
+        self.ai_tip.configure(text="Am gasit categoria in ghid. Ti-am deschis recomandarea din Ghid.")
+        self.tabs.set(" Ghid")
+        self._show_info(ui_cat)
+        return
+
+    # fallback daca nu exista in GUIDE (Electronice / Ulei uzat / Nereciclabil)
+      if ui_cat == "Electronice":
+        self.ai_tip.configure(text="Tip: du-le la centre DEEE (electronice). In harta ai filtru 'Electronice'.")
+      elif ui_cat == "Ulei uzat":
+        self.ai_tip.configure(text="Tip: uleiul uzat se duce la puncte dedicate (nu in chiuveta). In harta ai filtru 'Ulei uzat'.")
+      elif ui_cat == "Nereciclabil":
+        self.ai_tip.configure(text="Tip: pare nereciclabil (murdar / amestecat). Daca e murdar, ori il cureti ori il dai la menajer.")
+      else:
+        self.ai_tip.configure(text="Nu am regula in ghid pentru asta, dar poti incerca sa reformulezi (ex: 'doza aluminiu').")
+
+    # bonus: ii dam o steluta daca foloseste AI-ul (optional, dar e fun)
+      self.db.add_star(1)
+      self._update_stats()
+
 # param: none
 # UI pt ghid (lista categorii stanga + info si imagine dreapta)
     def _build_guide(self):
