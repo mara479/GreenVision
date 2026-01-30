@@ -1,0 +1,44 @@
+[
+  {"text":"pet de apa", "label":"Plastic"},
+  {"text":"sticla pet suc", "label":"Plastic"},
+  {"text":"punga de plastic", "label":"Plastic"},
+  {"text":"folie alimentara curata", "label":"Plastic"},
+  {"text":"cutie iaurt clatita", "label":"Plastic"},
+  {"text":"recipient detergent clatit", "label":"Plastic"},
+
+  {"text":"cutie carton", "label":"Hartie"},
+  {"text":"ziar vechi", "label":"Hartie"},
+  {"text":"hartie de imprimanta", "label":"Hartie"},
+  {"text":"carton pliat", "label":"Hartie"},
+  {"text":"punga de hartie", "label":"Hartie"},
+  {"text":"caiet", "label":"Hartie"},
+
+  {"text":"borcan gem", "label":"Sticla"},
+  {"text":"sticla de suc", "label":"Sticla"},
+  {"text":"sticla de vin", "label":"Sticla"},
+  {"text":"borcan clatit", "label":"Sticla"},
+
+  {"text":"doza aluminiu", "label":"Metal"},
+  {"text":"conserva", "label":"Metal"},
+  {"text":"cutie metalica", "label":"Metal"},
+  {"text":"capac metalic borcan", "label":"Metal"},
+
+  {"text":"telefon vechi", "label":"Electronice"},
+  {"text":"incarcator stricat", "label":"Electronice"},
+  {"text":"casti vechi", "label":"Electronice"},
+  {"text":"mouse stricat", "label":"Electronice"},
+
+  {"text":"ulei uzat", "label":"Ulei uzat"},
+  {"text":"ulei de gatit folosit", "label":"Ulei uzat"},
+
+  {"text":"baterii uzate", "label":"Baterii"},
+  {"text":"baterie litiu", "label":"Baterii"},
+  {"text":"baterie aa", "label":"Baterii"},
+
+  {"text":"servetele murdare", "label":"Nereciclabil"},
+  {"text":"pizza murdara", "label":"Nereciclabil"},
+  {"text":"plastic murdar de mancare", "label":"Nereciclabil"},
+  {"text":"hartie cerata", "label":"Nereciclabil"},
+  {"text":"oglinzi sparte", "label":"Nereciclabil"},
+  {"text":"portelan", "label":"Nereciclabil"}
+]
