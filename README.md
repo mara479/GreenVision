@@ -33,7 +33,7 @@ GreenVision/
 ├── requirements.txt
 └── README.md
 
-##  Rolul fișierelor
+#  Rolul fișierelor
 
 - **app.py**  
   Aplicația principală (UI CustomTkinter, DB, ML, hartă)
@@ -61,7 +61,8 @@ GreenVision/
 
 - **test_map.py**  
   Script de test pentru hartă
-##  Arhitectură logică (pe scurt)
+
+# Arhitectură logică (pe scurt)
 
 - **UI Layer**: `app.py`  
   Gestionează interfața, evenimentele și afișarea datelor
@@ -77,7 +78,7 @@ GreenVision/
 
 
 
-##  API-uri utilizate
+#  API-uri utilizate
 
 - **API extern (indirect)**:
   - OpenStreetMap Tiles API (prin Leaflet.js)
@@ -87,7 +88,7 @@ GreenVision/
 
 > Aplicația nu folosește un REST API propriu (Flask/FastAPI), ci servicii locale și biblioteci Python.
 
-## Tehnologii utilizate
+# Tehnologii utilizate
 - Python  
 - CustomTkinter (UI)  
 - SQLite (persistență date)  
@@ -95,13 +96,13 @@ GreenVision/
 - Pillow (procesare imagini)  
 - Matplotlib (statistici – opțional)
 
-## Instalare și rulare
+# Instalare și rulare
 1. Clonează repository-ul:
    ```bash
    git clone https://github.com/mara479/GreenVision.git
    cd GreenVision
 
-## Screenshots
+# Screenshots
 ![Principal](screenshots/principal.png)
 ![Ghid](screenshots/ghid.png)
 ![Statistici](screenshots/statistici.png)
