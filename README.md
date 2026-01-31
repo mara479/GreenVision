@@ -13,59 +13,54 @@ Aplicație Descktop Python (CustomTkinter) pentru ghid de reciclare quiz,statist
 
 
 ##  Structura proiectului
-
+```text
 GreenVision/
 ├── app.py
-│ ├─ Interfața grafică principală (CustomTkinter)
-│ ├─ Controlul aplicației (tabs, butoane, flux UI)
-│ ├─ Integrare bază de date (SQLite – class DB)
-│ ├─ Integrare Machine Learning (apel ML local)
-│ └─ Generare hartă interactivă (Folium)
-│
 ├── ml_model.py
-│ ├─ Logica de Machine Learning
-│ ├─ Antrenare model (TF-IDF + Naive Bayes)
-│ ├─ Salvare/încărcare model (joblib)
-│ └─ Funcții de predicție (predict / predict_proba)
-│
 ├── ml_recycle_data.json
-│ └─ Date de antrenare pentru modelul ML
-│ (text → categorie de reciclare)
-│
 ├── recycle_model.pkl
-│ └─ Model ML antrenat (generat automat la prima rulare)
-│
 ├── collect_points.json
-│ └─ Date statice pentru hartă
-│ (puncte de colectare + tipuri acceptate)
-│
 ├── map.html
-│ └─ Hartă interactivă generată automat cu Folium
-│ (Leaflet.js + OpenStreetMap API – rulat în browser)
-│
 ├── greenvision.db
-│ └─ Bază de date SQLite locală
-│ • stats (steluțe)
-│ • recycle (istoric reciclare)
-│ • quiz (scoruri)
-│ • reviews (recenzii)
-│
 ├── assets/
-│ └─ Imagini UI (containere, mascot, iconuri)
-│
+│   ├── 10f3ae10-7fdb-44ef-98b6-63421d11a7f2.png
+│   ├── 06ed436b-2b05-4dbb-bf7a-32409c66a82b.png
+│   ├── albastru.png
+│   ├── dc42bea2-657a-427f-8cbf-ac33b19801b5.png
+│   └── 144294ed-a719-4caf-b446-6de72ac4e46c.png
 ├── test_map.py
-│ └─ Script auxiliar pentru testarea hărții Folium
-│
 ├── .venv/
-│ └─ Mediu virtual Python (NU se urcă pe GitHub)
-│
 ├── requirements.txt
-│ └─ Dependențe Python necesare proiectului
-│
 └── README.md
-└─ Documentația proiectului
 
+##  Rolul fișierelor
 
+- **app.py**  
+  Aplicația principală (UI CustomTkinter, DB, ML, hartă)
+
+- **ml_model.py**  
+  Modul de Machine Learning (antrenare + predicție)
+
+- **ml_recycle_data.json**  
+  Set de date pentru antrenarea modelului ML
+
+- **recycle_model.pkl**  
+  Model ML salvat automat (joblib)
+
+- **collect_points.json**  
+  Datele punctelor de colectare (folosite la hartă)
+
+- **map.html**  
+  Hartă interactivă generată cu Folium (Leaflet + OpenStreetMap)
+
+- **greenvision.db**  
+  Bază de date SQLite locală
+
+- **assets/**  
+  Imagini utilizate în interfață
+
+- **test_map.py**  
+  Script de test pentru hartă
 ##  Arhitectură logică (pe scurt)
 
 - **UI Layer**: `app.py`  
